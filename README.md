@@ -1,5 +1,7 @@
 # lil_image_processor
 
+![Lil' Image Processor](https://github.com/rhodriguerrier/lil_image_processor/blob/main/sobel_colour_japanese_wave.jpg?raw=true)
+
 A command line based image processor using Go.
 
 This allows the user to select an input image and apply one of the following effects to it:
@@ -32,5 +34,4 @@ Future Work:
 - Add in concurrent calculations for convolutions. This is not necessary but for bigger images there is a half second-ish delay which would be nice to cut down
 - Better error handling
 
-![Lil' Image Processor](https://github.com/rhodriguerrier/lil_image_processor/blob/main/sobel_colour_japanese_wave.jpg?raw=true)
 
