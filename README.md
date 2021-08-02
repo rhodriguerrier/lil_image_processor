@@ -31,6 +31,7 @@ If you are using windows, you will need to provide the full file path for -file 
 Future Work:
 - Include support for other files (e.g. png, ...)
 - Allow chaining on image processes (e.g. being able to blur and then apply sobel edge detection in one command)
+- Allow custom kernel values for image effects
 - Add in concurrent calculations for convolutions. This is not necessary but for bigger images there is a half second-ish delay which would be nice to cut down
 - Better error handling
 
