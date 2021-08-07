@@ -5,8 +5,10 @@ import (
 	"image"
 	"image/color"
 	"image/jpeg"
+	"image/png"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/rhodriguerrier/lil_image_processor/gaussianBlur"
 	"github.com/rhodriguerrier/lil_image_processor/grayscale"
@@ -15,16 +17,27 @@ import (
 	"github.com/rhodriguerrier/lil_image_processor/sobel"
 )
 
-func grayScaleImg(img image.Image) *image.Gray {
-	return grayscale.ImageToGray(img)
+type imgProcessFunc func(image.Image) *image.RGBA
+
+func grayScaleImg(img image.Image) *image.RGBA {
+	grayImg := grayscale.ImageToGray(img)
+	width, height := grayImg.Bounds().Max.X, grayImg.Bounds().Max.Y
+	outputImg := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{width, height}})
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			grayPixelVal := grayImg.GrayAt(x, y).Y
+			outputImg.SetRGBA(x, y, color.RGBA{R: grayPixelVal, G: grayPixelVal, B: grayPixelVal, A: uint8(255)})
+		}
+	}
+	return outputImg
 }
 
-func sobelGrayImg(img image.Image) *image.Gray {
+func sobelGrayImg(img image.Image) *image.RGBA {
 	grayscaledImg := grayscale.ImageToGray(img)
 	grayPixelData := grayscale.GetGrayValues(grayscaledImg)
 	sobelOperators := sobel.GetKernels()
 	sobelPixelMap, _ := sobelOperators.CalculateSobel(grayPixelData.GrayValues)
-	outputEdgeImg := image.NewGray(
+	outputEdgeImg := image.NewRGBA(
 		image.Rectangle{
 			image.Point{0, 0},
 			image.Point{len(sobelPixelMap[0]), len(sobelPixelMap)},
@@ -32,7 +45,7 @@ func sobelGrayImg(img image.Image) *image.Gray {
 	)
 	for y := range sobelPixelMap {
 		for x := range sobelPixelMap[y] {
-			outputEdgeImg.SetGray(x, y, color.Gray{Y: sobelPixelMap[y][x]})
+			outputEdgeImg.SetRGBA(x, y, color.RGBA{R: sobelPixelMap[y][x], G: sobelPixelMap[y][x], B: sobelPixelMap[y][x], A: uint8(255)})
 		}
 	}
 	return outputEdgeImg
@@ -117,6 +130,8 @@ func main() {
 	}
 	defer file.Close()
 
+	splitOutPath := strings.Split(*outputFileName, ".")
+	outputFileExt := splitOutPath[len(splitOutPath)-1]
 	outputFile, err := os.Create(*outputFileName)
 	if err != nil {
 		log.Fatal(err)
@@ -128,17 +143,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if *editMode == "g" {
-		jpeg.Encode(outputFile, grayScaleImg(loadedImg), nil)
-	} else if *editMode == "s" {
-		jpeg.Encode(outputFile, sobelGrayImg(loadedImg), nil)
-	} else if *editMode == "sc" {
-		jpeg.Encode(outputFile, sobelThetaImg(loadedImg), nil)
-	} else if *editMode == "sh" {
-		jpeg.Encode(outputFile, sharpenImg(loadedImg), nil)
-	} else if *editMode == "b" {
-		jpeg.Encode(outputFile, blurImg(loadedImg), nil)
-	} else {
-		log.Fatal("Invalid edit move provided")
+	processesMap := map[string]imgProcessFunc {
+		"g": grayScaleImg,
+		"s": sobelGrayImg,
+		"sc": sobelThetaImg,
+		"sh": sharpenImg,
+		"b": blurImg,
 	}
+
+	if outputFileExt == "jpg" {
+		jpeg.Encode(outputFile, processesMap[*editMode](loadedImg), nil)
+	} else if outputFileExt == "png" {
+		png.Encode(outputFile, processesMap[*editMode](loadedImg))
+	} else {
+		log.Fatal("Unsupported output file extension provided")
+	}
+
 }
