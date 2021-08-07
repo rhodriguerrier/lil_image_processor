@@ -1,6 +1,6 @@
 # lil_image_processor
 
-![Lil' Image Processor](https://github.com/rhodriguerrier/lil_image_processor/blob/main/sobel_colour_japanese_wave.jpg?raw=true)
+![Lil' Image Processor](https://github.com/rhodriguerrier/lil_image_processor/blob/main/img_process_examples/sobel_colour_japanese_wave.jpg?raw=true)
 
 A command line based image processor using Go.
 
