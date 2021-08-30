@@ -15,7 +15,10 @@ import (
 	"github.com/rhodriguerrier/lil_image_processor/hsvToRgb"
 	"github.com/rhodriguerrier/lil_image_processor/sharpen"
 	"github.com/rhodriguerrier/lil_image_processor/sobel"
+	"github.com/rhodriguerrier/lil_image_processor/rotate"
 )
+
+var rotationAngle int
 
 type imgProcessFunc func(image.Image) *image.RGBA
 
@@ -118,10 +121,15 @@ func blurImg(img image.Image) *image.RGBA {
 	return blurOutputImg
 }
 
+func rotateNinety(img image.Image) *image.RGBA {
+	return rotate.RotateImage(img, rotationAngle)
+}
+
 func main() {
 	inputFileName := flag.String("file", "", "input file")
 	editMode := flag.String("editMode", "g", "edit mode (e.g. g - grayscale, s - sobel, sc - coloured sobel orientation)")
 	outputFileName := flag.String("outFile", "outputImg.jpg", "filename and extension string of output")
+	flag.IntVar(&rotationAngle, "angle", 0, "The angle of rotation in degrees when using -editMode=r")
 	flag.Parse()
 
 	file, err := os.Open(*inputFileName)
@@ -149,6 +157,7 @@ func main() {
 		"sc": sobelThetaImg,
 		"sh": sharpenImg,
 		"b": blurImg,
+		"r": rotateNinety,
 	}
 
 	if outputFileExt == "jpg" {
